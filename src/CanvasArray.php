@@ -12,6 +12,7 @@ namespace smtech\CanvasPest;
  **/
 class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
 {
+
     /** The maximum supported number of responses per page */
     const MAXIMUM_PER_PAGE = 100;
 
@@ -44,6 +45,8 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
     /** @var int $key Current key-value of iterator */
     private $key = null;
 
+
+
     /**
      * Construct a CanvasArray
      *
@@ -74,7 +77,7 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
     /**
      * Parse the API response link headers into pagination information
      *
-     * @param  boolean|string[] $headers (Optional, defaults to `$this->api->lastHeader('link')`)
+     * @param boolean|string[] $headers (Optional, defaults to `$this->api->lastHeader('link')`)
      * @return CanvasPageLink[]
      */
     protected function parsePageLinks($headers = false)
@@ -93,6 +96,7 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
 
         return $pagination;
     }
+
     /**
      * Convert a page number to an array key
      *
@@ -102,7 +106,7 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
      **/
     protected function pageNumberToKey($pageNumber)
     {
-        if (isset($this->pagination[CanvasPageLink::CURRENT])) {
+        if (isset($this->pagination[CanvasPageLink::CURRENT]) and is_numeric($pageNumber)) {
             return ($pageNumber - 1) * $this->pagination[CanvasPageLink::CURRENT]->getPerPage();
         }
         return false;
@@ -199,7 +203,7 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
      * @see http://php.net/manual/en/arrayobject.getarraycopy.php
      *      ArrayObject::getArrayCopy
      **/
-    public function getArrayCopy()
+    public function getArrayCopy(): array
     {
         $this->requestAllPages();
         return $this->data;
@@ -219,6 +223,7 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
      * @see http://php.net/manual/en/arrayaccess.offsetexists.php
      *      ArrayAccess::offsetExists
      **/
+    #[\ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         if (!isset($this->data[$offset])) {
@@ -237,6 +242,7 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
      * @see http://php.net/manual/en/arrayaccess.offsetexists.php
      *      ArrayAccess::offsetGet
      **/
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         if (!isset($this->data[$offset])) {
@@ -248,8 +254,6 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
     /**
      * Assign a value to the specified offset
      *
-     * @deprecated CanvasObject and CanvasArray responses are immutable
-     *
      * @param int|string $offset
      * @param CanvasObject $value
      *
@@ -257,9 +261,12 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
      *
      * @throws CanvasArray_Exception IMMUTABLE All calls to this method will cause an exception
      *
+     * @deprecated CanvasObject and CanvasArray responses are immutable
+     *
      * @see http://php.net/manual/en/arrayaccess.offsetset.php
      *      ArrayAccess::offsetSet
      **/
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         throw new CanvasArray_Exception(
@@ -271,8 +278,6 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
     /**
      * Unset an offset
      *
-     * @deprecated CanvasObject and CanvasArray responses are immutable
-     *
      * @param int|string $offset
      *
      * @return void
@@ -280,9 +285,12 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
      * @throws CanvasArray_Exception IMMUTABLE All calls to this method will
      *         cause an exception
      *
+     * @deprecated CanvasObject and CanvasArray responses are immutable
+     *
      * @see http://php.net/manual/en/arrayaccess.offsetunset.php
      *      ArrayAccess::offsetUnset
      **/
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         throw new CanvasArray_Exception(
@@ -304,7 +312,9 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
      *
      * @see http://php.net/manual/en/iterator.current.php Iterator::current
      **/
+    #[\ReturnTypeWillChange]
     public function current()
+
     {
         return $this->data[$this->key];
     }
@@ -316,10 +326,12 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
      *
      * @see http://php.net/manual/en/iterator.key.php Iterator::key
      **/
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return $this->key;
     }
+
 
     /**
      * Move forward to next element
@@ -328,6 +340,7 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
      *
      * @see http://php.net/manual/en/iterator.next.php Iterator::next
      **/
+    #[\ReturnTypeWillChange]
     public function next()
     {
         $this->key++;
@@ -340,6 +353,7 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
      *
      * @see http://php.net/manual/en/iterator.rewind.php Iterator::rewind
      **/
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
         $this->key = 0;
@@ -352,6 +366,7 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
      *
      * @see http://php.net/manual/en/iterator.valid.php Iterator::valid
      **/
+    #[\ReturnTypeWillChange]
     public function valid()
     {
         return ($this->offsetExists($this->key));
@@ -371,7 +386,7 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
      * @see http://php.net/manual/en/serializable.serialize.php
      *      Serializable::serialize()
      **/
-    public function serialize()
+    public function __serialize(): array
     {
         $this->requestAllPages();
         return serialize(
@@ -381,6 +396,11 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
                 'data' => $this->data
             )
         );
+    }
+
+    public function serialize(): array
+    {
+        return $this.__serialize();
     }
 
     /**
@@ -397,7 +417,7 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
      * @see http://php.net/manual/en/serializable.unserialize.php
      *      Serializable::unserialize()
      **/
-    public function unserialize($data)
+    public function __unserialize($data)
     {
         $_data = unserialize($data);
         $this->page = $_data['page'];
@@ -407,4 +427,12 @@ class CanvasArray implements \Iterator, \ArrayAccess, \Serializable
         $this->endpoint = null;
         $this->pagination = array();
     }
+    public function unserialize($data)
+    {
+        $this.__unserialize($data);
+    }
+
+//    public function serialize(): array {}
+//    public function unserialize(string $data): void {}
+
 }

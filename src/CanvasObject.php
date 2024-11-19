@@ -74,14 +74,14 @@ class CanvasObject implements \ArrayAccess, \Serializable
     /**
      * Whether a property exists
      *
-     * @deprecated Canvas objects are immutable
-     *
      * @param string $key
      * @param mixed $value
      *
      * @return void
      *
      * @throws CanvasObject_Exception IMMUTABLE All calls to this method will cause an exception
+     *
+     * @deprecated Canvas objects are immutable
      *
      * @see http://php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.members
      *      Property overloading
@@ -97,13 +97,13 @@ class CanvasObject implements \ArrayAccess, \Serializable
     /**
      * Unset a property
      *
-     * @deprecated Canvas objects are immutable
-     *
      * @param string $key
      *
      * @return void
      *
      * @throws CanvasObject_Exception IMMUTABLE All calls to this method will cause an exception
+     *
+     * @deprecated Canvas objects are immutable
      *
      * @see http://php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.members
      *      Property overloading
@@ -129,6 +129,7 @@ class CanvasObject implements \ArrayAccess, \Serializable
      *
      * @see http://php.net/manual/en/arrayaccess.offsetexists.php ArrayAccess::offsetExists()
      **/
+    #[\ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         return isset($this->data[$offset]);
@@ -143,6 +144,7 @@ class CanvasObject implements \ArrayAccess, \Serializable
      *
      * @see http://php.net/manual/en/arrayaccess.offsetexists.php ArrayAccess::offsetGet()
      **/
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->data[$offset];
@@ -151,8 +153,6 @@ class CanvasObject implements \ArrayAccess, \Serializable
     /**
      * Assign a value to the specified offset
      *
-     * @deprecated Canvas objects are immutable
-     *
      * @param int|string $offset
      * @param mixed $value
      *
@@ -160,8 +160,11 @@ class CanvasObject implements \ArrayAccess, \Serializable
      *
      * @throws CanvasObject_Exception IMMUTABLE All calls to this method will cause an exception
      *
+     * @deprecated Canvas objects are immutable
+     *
      * @see http://php.net/manual/en/arrayaccess.offsetset.php ArrayAccess::offsetSet()
      **/
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         throw new CanvasObject_Exception(
@@ -173,16 +176,17 @@ class CanvasObject implements \ArrayAccess, \Serializable
     /**
      * Unset an offset
      *
-     * @deprecated Canvas objects are immutable
-     *
      * @param int|string $offset
      *
      * @return void
      *
      * @throws CanvasObject_Exception IMMUTABLE All calls to this method will cause an exception
      *
+     * @deprecated Canvas objects are immutable
+     *
      * @see http://php.net/manual/en/arrayaccess.offsetunset.php ArrayAccess::offsetUnset()
      **/
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         throw new CanvasObject_Exception(
@@ -202,9 +206,14 @@ class CanvasObject implements \ArrayAccess, \Serializable
      *
      * @see http://php.net/manual/en/serializable.serialize.php Serializable::serialize()
      **/
-    public function serialize()
+    public function __serialize()
     {
         return serialize($this->data);
+    }
+
+    public function serialize()
+    {
+        return $this . __serialize();
     }
 
     /**
@@ -216,19 +225,24 @@ class CanvasObject implements \ArrayAccess, \Serializable
      *
      * @see http://php.net/manual/en/serializable.unserialize.php Serializable::unsserialize()
      **/
-    public function unserialize($data)
+    public function __unserialize($data)
     {
         $this->data = unserialize($data);
     }
 
-    /**************************************************************************/
+    public function unserialize($data)
+    {
+        $this . __unserialize($data);
+    }
 
+    /**************************************************************************/
     /**
      * An array representation of the CanvasObject
      *
      * @return array
      **/
-    public function getArrayCopy()
+    #[\ReturnTypeWillChange]
+    public function getArrayCopy(): array
     {
         return $this->data;
     }
