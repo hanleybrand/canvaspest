@@ -10,7 +10,7 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "battis/educoder-pest-fork": "~1.0"
+        "battis/educoder-pest-fork": "^1.0"
     },
     "autoload": {
         "psr-4": {
